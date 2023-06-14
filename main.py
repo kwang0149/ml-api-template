@@ -37,6 +37,7 @@ import os
 import uvicorn
 import traceback
 import tensorflow as tf
+import tensorflow_text
 
 from pydantic import BaseModel
 from urllib.request import Request
@@ -50,7 +51,10 @@ from utils import load_image_into_numpy_array
 # If you use h5 type uncomment line below
 # model = tf.keras.models.load_model('./my_model.h5')
 # If you use saved model type uncomment line below
-# model = tf.saved_model.load("./my_model_folder")
+# model = tf.saved_model.load("./saved_model/1")
+# If you use tflite type uncomment line below
+interpreter = tf.lite.Interpreter(model_path='./converted_model.tflite')
+
 
 app = FastAPI()
 
@@ -69,16 +73,25 @@ def predict_text(req: RequestText, response: Response):
         # In here you will get text sent by the user
         text = req.text
         print("Uploaded text:", text)
-        
+        interpreter.allocate_tensors()
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
         # Step 1: (Optional) Do your text preprocessing
-        
+        input_data = np.array([text])
+        interpreter.set_tensor(input_details[0]['index'], input_data)
+        interpreter.invoke()
         # Step 2: Prepare your data to your model
         
         # Step 3: Predict the data
+        
         # result = model.predict(...)
-        
+        result = interpreter.get_tensor(output_details[0]['index'])
+        labels = ["Teknik Informatika", "Ekonomi", "Seni", "Kedokteran"]
         # Step 4: Change the result your determined API output
-        
+        # Find the index of the maximum value
+        index = tf.argmax(result,axis=1).numpy()[0]
+        return labels[index] #return string nama jurusan
+    
         return "Endpoint not implemented"
     except Exception as e:
         traceback.print_exc()
