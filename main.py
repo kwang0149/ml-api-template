@@ -47,7 +47,7 @@ def predict_text(req: RequestText, response: Response):
                       'Kedokteran, Kesehatan Masyarakat, Keperawatan']
         # Change the result your determined API output
         # Find the index of the maximum value
-        index = tf.argmax(result,axis=1).numpy()[0]
+        index = tf.argmax(result,axis=1).np()[0]
         return labels[index] #return string nama jurusan
     
         return "Endpoint not implemented"
